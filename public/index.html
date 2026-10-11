@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CrypPDF</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+:root{--blue:#2B78C8;--sky:#5FA6E3;--pale:#BFE0F5;--navy:#0B1F3A;--bg:#EEF3F8;--pk1:#FBE0EE;--pk2:#F4B6D6;--pk3:#E79AC6;--text2:#3A4A60;--line:#E3EAF2;--chip:#E3EEF9;--chipt:#1F5A9E;--danger:#B3261E;
+--hd:'Bricolage Grotesque',system-ui,sans-serif;--ui:'Instrument Sans',system-ui,sans-serif;--ease:cubic-bezier(.22,1,.36,1);--spring:cubic-bezier(.34,1.45,.5,1);
+--sky-grad:linear-gradient(180deg,#2B78C8 0%,#5FA6E3 45%,#BFE0F5 80%);--shadow:0 40px 80px -30px rgba(11,31,58,.45)}
+*{box-sizing:border-box}[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:#fff;color:var(--navy);font-family:var(--ui);overflow-x:hidden}
+h1,h2,h3,.brand,.btn,.num{font-family:var(--hd)}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:3px solid var(--sky);outline-offset:3px;border-radius:12px}
+.skip{position:absolute;left:12px;top:-60px;background:var(--navy);color:#fff;padding:10px 16px;border-radius:999px;z-index:99}.skip:focus{top:12px}
+.brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:20px}
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:44px;padding:0 26px;border-radius:999px;border:1px solid var(--navy);background:var(--navy);color:#fff;font-weight:600;font-size:15px;cursor:pointer;transition:transform .2s var(--ease),box-shadow .2s var(--ease),background .2s,opacity .2s;box-shadow:0 6px 16px -8px rgba(11,31,58,.5)}
+.btn:hover{transform:translateY(-3px);box-shadow:0 14px 24px -12px rgba(11,31,58,.6)}
+.btn:active{transform:translateY(0) scale(.97);box-shadow:0 2px 6px -2px rgba(11,31,58,.5)}
+.btn.ghost{background:#fff;color:var(--navy)}.btn.danger{background:#fff;color:var(--danger);border-color:var(--danger)}
+.btn.sm{min-height:36px;padding:0 16px;font-size:13px}.btn.lg{min-height:54px;font-size:16px;width:100%}
+.btn[disabled],.btn[aria-disabled=true]{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+.spin{width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:rot .7s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+/* shared bits */
+.chip{display:inline-block;font-size:12px;font-weight:600;padding:5px 12px;border-radius:999px;background:var(--chip);color:var(--chipt);white-space:nowrap}
+.chip.bad{background:#FBE3E0;color:var(--danger)}.chip.ok{background:#DDF3E6;color:#14683A}
+.card{background:#fff;border-radius:28px;padding:28px}
+.muted{color:var(--text2)}
+.sky{position:relative;overflow:hidden;border-radius:36px;background:var(--sky-grad)}
+.cloud-layer{position:absolute;border-radius:50%;background:#fff;filter:blur(24px);opacity:.88;pointer-events:none;animation:drift 18s ease-in-out infinite alternate}
+.c1{left:4%;top:10%;width:300px;height:90px}.c2{right:6%;top:9%;width:340px;height:100px;animation-delay:-6s}
+.c3{left:-4%;top:44%;width:340px;height:120px;animation-delay:-3s}.c4{right:-3%;top:40%;width:320px;height:110px;animation-delay:-9s}
+.c5,.c6{background:#FCE8F2;bottom:40px;width:370px;height:155px;filter:blur(20px)}.c5{left:12%}.c6{right:10%;animation-delay:-5s}
+.horizon{position:absolute;left:-20%;right:-20%;bottom:-240px;height:420px;border-radius:50%;background:radial-gradient(ellipse at 50% 30%,var(--pk1) 0%,var(--pk2) 60%,var(--pk3) 100%);filter:blur(6px);pointer-events:none}
+@keyframes drift{to{transform:translateX(18px)}}
+/* ===== LANDING ===== */
+.page{min-height:100svh;padding:14px 18px 18px;display:flex;flex-direction:column}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:4px 28px 14px}
+.nav nav{display:flex;gap:18px;font-weight:600;font-size:14px}.nav nav a:hover{color:var(--blue)}
+.hero{flex:1;min-height:min(724px,calc(100svh - 90px));display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:20px;padding:48px clamp(20px,6vw,90px)}
+.hero-background{position:absolute;inset:0;background:var(--sky-grad);animation:bgin .7s var(--ease) backwards}
+.hero-background .glow{position:absolute;inset:0;background:radial-gradient(60% 45% at 50% 30%,rgba(255,255,255,.45),transparent 70%),radial-gradient(40% 30% at 15% 85%,rgba(244,182,214,.35),transparent 70%),radial-gradient(35% 30% at 90% 15%,rgba(255,255,255,.3),transparent 70%)}
+.hero-background .cloud-layer{animation:cin .9s var(--ease) .15s backwards,drift 18s ease-in-out 1s infinite alternate}
+.hero-background .horizon{animation:rise .9s var(--ease) .1s backwards}
+@keyframes bgin{from{opacity:0}}@keyframes cin{from{opacity:0}}@keyframes rise{from{opacity:0;transform:translateY(60px)}}
+.hero-headline{position:absolute;left:0;right:0;top:15%;margin:0;text-align:center;font-weight:800;font-size:clamp(84px,22vw,330px);line-height:1;letter-spacing:-.04em;color:rgba(255,255,255,.82);pointer-events:none;user-select:none;animation:headin .9s var(--ease) .3s backwards}
+@keyframes headin{from{opacity:0;transform:scale(.93)}}
+.hero-copy-left,.hero-copy-right,.hero-cta,.hero-sub{position:relative}
+.hero-copy-left{justify-self:start;max-width:200px}
+.hero-copy-left p{margin:0;font:600 14px/1.6 var(--hd);letter-spacing:.2em;text-transform:uppercase;animation:inL .8s var(--ease) .5s backwards}
+.hero-copy-left .hero-sub{margin:14px 0 0;font:500 15px/1.5 var(--ui);letter-spacing:0;text-transform:none;animation-delay:.63s}
+.hero-right{justify-self:end;display:flex;flex-direction:column;align-items:flex-end;gap:22px;text-align:right}
+.hero-copy-right{margin:0;padding:0;list-style:none;font:600 12px/1.8 var(--hd);letter-spacing:.18em;text-transform:uppercase;animation:inR .8s var(--ease) .5s backwards}
+@keyframes inL{from{opacity:0;transform:translateX(-80px)}}@keyframes inR{from{opacity:0;transform:translateX(80px)}}
+.hero-pdf{position:relative;z-index:1;animation:drop 1.2s var(--spring) .8s backwards}
+@keyframes drop{0%{opacity:0;transform:translateY(-300px) rotate(-10deg)}35%{opacity:1}100%{opacity:1;transform:none}}
+.pdf-float{animation:float 5s ease-in-out 2.1s infinite}
+@keyframes float{50%{transform:translateY(-10px)}}
+.hero-pdf svg{display:block;width:clamp(190px,24vw,340px);height:auto;transform:rotate(-12deg);filter:drop-shadow(0 34px 28px rgba(11,31,58,.28)) drop-shadow(0 8px 10px rgba(158,59,120,.25))}
+.hero-cta{animation:ctain .6s var(--ease) 1.75s backwards}
+@keyframes ctain{from{opacity:0;transform:translateY(18px)}}
+.hero-cta .btn{padding:0 28px;min-height:48px}.hero-cta small{display:block;margin-top:10px;font-weight:600;font-size:12px}
+.intro-done .hero-background,.intro-done .hero-background .horizon,.intro-done .hero-headline,.intro-done .hero-copy-left p,.intro-done .hero-copy-right,.intro-done .hero-pdf,.intro-done .hero-cta{animation:none}
+@media(max-width:860px){.hero{grid-template-columns:1fr;justify-items:center;text-align:center;padding:36px 20px 120px;gap:24px}.hero-copy-left{justify-self:center;max-width:280px}.hero-right{justify-self:center;align-items:center;text-align:center}.hero-headline{top:6%}.nav nav{display:none}}
+/* ===== AUTH / RECEIVER centered ===== */
+.center{display:flex;align-items:center;justify-content:center;padding:84px 20px 40px;flex:1;min-height:min(788px,calc(100svh - 32px))}
+.center .secure-bg{position:absolute;left:0;right:0;top:12%;text-align:center;font:800 clamp(90px,20vw,300px)/1 var(--hd);letter-spacing:-.04em;color:rgba(255,255,255,.55);pointer-events:none}
+.glass{position:relative;width:100%;max-width:420px;padding:40px 36px 32px;border-radius:32px;background:rgba(255,255,255,.84);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:var(--shadow);text-align:center;animation:rise2 .6s var(--ease) backwards}
+@keyframes rise2{from{opacity:0;transform:translateY(24px)}}
+.glass h1{margin:16px 0 8px;font-size:clamp(26px,5vw,34px);font-weight:800;letter-spacing:-.02em}
+.top-brand{position:absolute;left:36px;top:28px;color:#fff;z-index:2}
+.note{margin:14px 0 0;padding:12px 14px;border-radius:16px;background:var(--chip);color:var(--chipt);font-size:13px;line-height:1.5;text-align:left}
+/* ===== TOUR ===== */
+.tour-hero{padding:clamp(36px,6vw,56px) clamp(24px,5vw,48px) 130px;color:#fff}
+.tour-hero h1{margin:14px 0 0;font-size:clamp(36px,7vw,64px);font-weight:800;line-height:1;letter-spacing:-.03em;max-width:720px}
+.tour-hero .eyebrow{font-size:13px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;position:relative}
+.tour-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:-92px 0 0;padding:0 clamp(0px,2vw,28px);position:relative}
+.tcard{background:var(--bg);border-radius:28px;padding:28px;min-height:250px;display:flex;flex-direction:column;gap:10px;box-shadow:0 20px 40px -24px rgba(11,31,58,.4);transition:transform .25s var(--ease),box-shadow .25s var(--ease);animation:rise2 .6s var(--ease) backwards}
+.tcard:nth-child(2){animation-delay:.08s}.tcard:nth-child(3){animation-delay:.16s}.tcard:nth-child(4){animation-delay:.24s}
+.tcard:hover{transform:translateY(-6px);box-shadow:0 28px 44px -22px rgba(11,31,58,.5)}
+.tcard h2{margin:10px 0 0;font-size:24px;font-weight:800}.tcard p{margin:0;font-size:15px;line-height:1.5;color:var(--text2)}.tcard span.go{margin-top:auto;font-weight:600;font-size:14px}
+.ico{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;color:var(--navy)}.ico svg{width:26px;height:26px}
+/* ===== APP SHELL ===== */
+.shell{display:flex;flex-wrap:wrap;gap:14px;padding:14px;min-height:100svh;background:var(--bg)}
+.side{flex:0 0 240px;background:#fff;border-radius:28px;padding:26px 18px;display:flex;flex-direction:column;gap:28px;position:sticky;top:14px;align-self:flex-start;min-height:calc(100svh - 28px)}
+.side .brand{padding:0 10px}.side nav{display:flex;flex-direction:column;gap:6px}
+.side nav a{display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:16px;font-size:15px;font-weight:600;color:var(--text2);transition:background .2s,color .2s}
+.side nav a i{width:8px;height:8px;border-radius:50%;background:var(--sky)}
+.side nav a:hover{background:var(--bg)}.side nav a[aria-current=page]{background:var(--navy);color:#fff}
+.trial{margin-top:auto;padding:18px;border-radius:20px;background:linear-gradient(160deg,var(--pale),var(--pk1));font-size:13px;line-height:1.5}
+.area{flex:1 1 560px;min-width:0}
+.area>section{display:flex;flex-direction:column;gap:14px;animation:rise2 .4s var(--ease) backwards}
+.files-grid{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start}
+.head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:8px 12px}
+.head h1{margin:0;font-size:clamp(28px,5vw,38px);font-weight:800;letter-spacing:-.02em}.head p{margin:6px 0 0;font-size:15px}
+.drop{background:var(--sky-grad);border-radius:28px;padding:6px;transition:transform .25s var(--ease),box-shadow .25s}
+.drop>div{border:2px dashed rgba(255,255,255,.85);border-radius:24px;padding:34px 20px;text-align:center;color:#fff;transition:background .2s,border-color .2s}
+.drop.over{transform:scale(1.012);box-shadow:0 20px 40px -20px rgba(11,31,58,.5)}.drop.over>div{background:rgba(255,255,255,.2);border-style:solid}
+.drop h2{margin:0;font-size:clamp(20px,4vw,26px);font-weight:800}.drop p{margin:8px 0 18px;font-size:14px;font-weight:600}
+.drop .btn{background:#fff;color:var(--navy);border-color:#fff}
+.prog{margin-top:16px;color:var(--navy);background:rgba(255,255,255,.92);border-radius:16px;padding:12px 16px;font-size:13px;font-weight:600;text-align:left}
+.bar{height:8px;border-radius:99px;background:var(--line);margin-top:8px;overflow:hidden}.bar i{display:block;height:100%;width:0;background:var(--blue);border-radius:99px;transition:width .2s linear}
+.stats{display:flex;flex-wrap:wrap;gap:14px}.stats .card{flex:1 1 180px}.stats .num{font-size:44px;font-weight:800;margin-top:6px}
+.pending{border:2px solid var(--sky)}
+.row{display:flex;align-items:center;flex-wrap:wrap;gap:12px;padding:16px 0;border-top:1px solid var(--line)}
+.row .grow{flex:1 1 220px}.row b{font:800 16px var(--hd)}
+.badge{background:var(--navy);color:#fff;font-size:12px;font-weight:600;padding:4px 12px;border-radius:999px}
+.act{display:flex;gap:8px;margin-left:auto}
+.empty{padding:28px 0;text-align:center;color:var(--text2);font-size:15px}
+.input{height:48px;border:1px solid #C5D3E3;border-radius:16px;padding:0 18px;font:500 15px var(--ui);background:#fff;color:var(--navy);width:100%;transition:border-color .2s,box-shadow .2s}
+.input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 4px rgba(95,166,227,.35)}.input[aria-invalid=true]{border-color:var(--danger)}
+.search{border:0;border-radius:999px;height:44px;width:min(220px,100%)}
+.err{color:var(--danger);font-size:13px;font-weight:600;text-align:left;min-height:18px}
+.filters{display:flex;gap:8px;padding:0 12px;flex-wrap:wrap}
+.pillbtn{border:0;background:#fff;color:var(--navy);font:600 13px var(--ui);padding:8px 18px;border-radius:999px;cursor:pointer;transition:background .2s,transform .2s}
+.pillbtn:hover{transform:translateY(-2px)}.pillbtn[aria-pressed=true]{background:var(--navy);color:#fff}
+.fl{padding:12px 28px;flex:1 1 520px;min-width:0}
+.fhead,.frow{display:grid;grid-template-columns:2fr 2fr 1fr;gap:10px;align-items:center}
+.fhead{padding:14px 0;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text2)}
+.frow{width:100%;text-align:left;border:0;border-top:1px solid var(--line);background:none;padding:16px 12px;margin:0 -12px;width:calc(100% + 24px);font:400 15px var(--ui);color:var(--navy);cursor:pointer;border-radius:16px;transition:background .2s}
+.frow:hover{background:#F5F9FD}.frow[aria-pressed=true]{background:#EEF5FC}
+.frow .n{font-weight:600;overflow-wrap:anywhere}.tags{display:flex;gap:6px;flex-wrap:wrap}
+.detail{flex:1 1 300px;max-width:360px;display:flex;flex-direction:column;gap:14px}
+.thumb{background:var(--sky-grad);height:130px;border-radius:20px;display:grid;place-items:center;color:#fff;font:800 28px var(--hd)}
+.req{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 0;border-top:1px solid var(--line)}
+.sw{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:16px 0;border-top:1px solid var(--line);font-size:15px;font-weight:600;cursor:pointer}
+.sw input{appearance:none;flex:0 0 46px;height:26px;border-radius:99px;background:#C5D3E3;position:relative;cursor:pointer;transition:background .25s;margin:0}
+.sw input::after{content:"";position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .25s var(--ease);box-shadow:0 2px 4px rgba(0,0,0,.25)}
+.sw input:checked{background:var(--blue)}.sw input:checked::after{transform:translateX(20px)}
+.avatar{width:68px;height:68px;border-radius:50%;background:var(--sky-grad);color:#fff;font:800 28px var(--hd);display:grid;place-items:center;flex:none}
+/* receiver */
+.rcards{position:relative;width:100%;max-width:420px}
+.rcard{padding:32px 30px;border-radius:32px;background:rgba(255,255,255,.88);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:14px;animation:rise2 .5s var(--ease) backwards}
+.rcard h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.02em}
+.step{font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--chipt)}
+.dots{display:flex;gap:8px;margin:10px 0 4px}.dots span{width:12px;height:12px;border-radius:50%;background:var(--blue);animation:pulse 1.2s ease-in-out infinite}.dots span:nth-child(2){background:var(--sky);animation-delay:.15s}.dots span:nth-child(3){background:var(--pale);animation-delay:.3s}
+@keyframes pulse{50%{transform:translateY(-6px);opacity:.6}}
+.demo{border-top:1px dashed #C5D3E3;padding-top:12px;font-size:12px;color:var(--text2)}.demo div{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+/* toast + dialog */
+#toast{position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--navy);color:#fff;padding:12px 20px;border-radius:999px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s var(--ease);z-index:50;max-width:92vw;text-align:center}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+dialog{border:0;border-radius:28px;padding:28px;max-width:400px;width:calc(100% - 32px);box-shadow:var(--shadow);font-family:var(--ui);color:var(--navy)}dialog::backdrop{background:rgba(11,31,58,.5)}
+dialog h2{margin:0 0 8px;font-size:22px}dialog p{margin:0 0 20px;color:var(--text2);line-height:1.5}dialog .act{margin:0;justify-content:flex-end}
+/* ===== RESPONSIVE ===== */
+@media(max-width:900px){
+ .shell{padding:10px 10px 96px}
+ .side{position:fixed;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));top:auto;min-height:0;flex-direction:row;padding:8px;border-radius:24px;box-shadow:0 12px 32px -8px rgba(11,31,58,.35);z-index:40;align-self:auto}
+ .side .brand,.trial{display:none}.side nav{flex-direction:row;flex:1;gap:4px}.side nav a{flex:1;justify-content:center;padding:12px 6px;font-size:13px}.side nav a i{display:none}
+ .fl{padding:12px 18px}.detail{max-width:none}.act{margin-left:0}
+}
+@media(max-width:560px){.fhead{display:none}.frow{grid-template-columns:1fr auto}.frow .m{grid-column:2;grid-row:1;font-size:13px;color:var(--text2)}.frow .tags{grid-column:1/-1}.nav{padding:4px 8px 14px}.top-brand{left:20px}.glass{padding:32px 22px 26px}.cloud-layer{transform:scale(.7)}}
+/* ===== REDUCED MOTION ===== */
+@media(prefers-reduced-motion:reduce){
+ *,*::before,*::after{transition-duration:.01ms!important}
+ .cloud-layer,.pdf-float,.dots span{animation:none!important}
+ .hero-background,.hero-background .cloud-layer,.hero-background .horizon,.hero-headline,.hero-copy-left p,.hero-copy-right,.hero-pdf,.hero-cta,.glass,.tcard,.rcard,.area>section{animation:fadeonly .4s ease backwards!important}
+ @keyframes fadeonly{from{opacity:0}}
+}
+.copy{display:flex;gap:8px}.copy .input{height:40px;font-size:13px;min-width:0}.sel{height:40px;width:auto;padding:0 12px}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid var(--line);font-size:15px;margin-top:8px}.kv+.kv{margin-top:0}
+.note b{font-weight:600}.note .input{height:44px}
+</style></head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="logo" viewBox="0 0 26 30"><path d="M2 3a2 2 0 0 1 2-2h12l8 8v18a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V3z" fill="currentColor"/><rect x="8" y="16" width="10" height="8" rx="1.5" fill="var(--lk,#fff)"/><path d="M10 16v-2.5a3 3 0 0 1 6 0V16" stroke="var(--lk,#fff)" stroke-width="1.8" fill="none"/></symbol>
+<symbol id="i-dash" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="3" width="8" height="10" rx="2"/><rect x="13" y="3" width="8" height="6" rx="2"/><rect x="13" y="11" width="8" height="10" rx="2"/><rect x="3" y="15" width="8" height="6" rx="2"/></g></symbol>
+<symbol id="i-files" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M6 3h8l5 5v12a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M9 14h6M9 17h4"/></g></symbol>
+<symbol id="i-recv" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="3"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></g></symbol>
+<symbol id="i-acct" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></g></symbol>
+</defs></svg>
+
+<main id="main">
+<!-- 1 LANDING -->
+<section data-view="landing" class="page" aria-label="Landing page">
+ <header class="nav"><a class="brand" href="#/"><svg width="22" height="26" style="color:var(--blue)" aria-hidden="true"><use href="#logo"/></svg>CrypPDF</a>
+  <nav aria-label="Primary"><a href="#/receiver">Open a shared file</a><a href="#/auth">Log in</a></nav></header>
+ <div class="hero sky">
+  <div class="hero-background" aria-hidden="true"><div class="glow"></div><div class="cloud-layer c1"></div><div class="cloud-layer c2"></div><div class="cloud-layer c3"></div><div class="cloud-layer c4"></div><div class="horizon"></div><div class="cloud-layer c5"></div><div class="cloud-layer c6"></div></div>
+  <div class="hero-headline" aria-hidden="true">SECURE</div>
+  <div class="hero-copy-left"><p>Your PDFs, locked in seconds</p><p class="hero-sub">Encrypt a PDF in your browser, share a link, and approve who can download it.</p></div>
+  <div class="hero-pdf"><div class="pdf-float">
+   <svg viewBox="0 0 340 420" fill="none" role="img" aria-label="A glossy PDF file with a padlock floating on clouds"><defs><linearGradient id="sheet" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F6E9FF"/><stop offset=".55" stop-color="#C9D8FF"/><stop offset="1" stop-color="#F3B7DA"/></linearGradient><linearGradient id="lockg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFD6EA"/><stop offset="1" stop-color="#E487BB"/></linearGradient></defs>
+    <ellipse cx="170" cy="400" rx="130" ry="14" fill="#C2689F" opacity=".35"/><path d="M40 40a24 24 0 0 1 24-24h150l86 86v250a24 24 0 0 1-24 24H64a24 24 0 0 1-24-24V40z" fill="url(#sheet)" stroke="#fff" stroke-opacity=".8" stroke-width="3"/><path d="M214 16l86 86h-62a24 24 0 0 1-24-24V16z" fill="#fff" fill-opacity=".7"/><rect x="64" y="132" width="116" height="48" rx="14" fill="#fff" fill-opacity=".85"/><text x="122" y="167" text-anchor="middle" font-family="Bricolage Grotesque, sans-serif" font-weight="800" font-size="30" fill="#2B5FA8">PDF</text><rect x="64" y="210" width="150" height="10" rx="5" fill="#fff" fill-opacity=".6"/><rect x="64" y="236" width="110" height="10" rx="5" fill="#fff" fill-opacity=".6"/><path d="M206 262v-26a38 38 0 0 1 76 0v26" stroke="url(#lockg)" stroke-width="18" stroke-linecap="round"/><rect x="188" y="252" width="112" height="96" rx="26" fill="url(#lockg)" stroke="#fff" stroke-opacity=".9" stroke-width="3"/><circle cx="244" cy="292" r="10" fill="#9E3B78"/><rect x="240" y="296" width="8" height="24" rx="4" fill="#9E3B78"/></svg>
+  </div></div>
+  <div class="hero-right"><ul class="hero-copy-right"><li>Encrypted in browser</li><li>Memory-only relay</li><li>You approve access</li></ul>
+   <div class="hero-cta"><a class="btn" href="#/auth">Get started free</a></div></div>
+ </div>
+</section>
+
+<!-- 2 AUTH -->
+<section data-view="auth" class="page" hidden aria-label="Sign up or log in">
+ <div class="sky center" style="padding-top:84px">
+  <div class="cloud-layer c1"></div><div class="cloud-layer c2"></div><div class="cloud-layer c3"></div><div class="horizon"></div><div class="secure-bg" aria-hidden="true">SECURE</div>
+  <a class="brand top-brand" href="#/"><svg width="22" height="26" aria-hidden="true" style="color:#fff;--lk:#2B78C8"><use href="#logo"/></svg>CrypPDF</a>
+  <div class="glass">
+   <svg width="64" height="76" viewBox="0 0 64 76" fill="none" aria-hidden="true"><defs><linearGradient id="s2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F6E9FF"/><stop offset=".6" stop-color="#C9D8FF"/><stop offset="1" stop-color="#F3B7DA"/></linearGradient></defs><path d="M6 10a6 6 0 0 1 6-6h28l20 20v42a6 6 0 0 1-6 6H12a6 6 0 0 1-6-6V10z" fill="url(#s2)" stroke="#fff" stroke-width="2"/><rect x="30" y="44" width="30" height="26" rx="8" fill="#E487BB" stroke="#fff" stroke-width="2"/><path d="M36 44v-6a9 9 0 0 1 18 0v6" stroke="#E487BB" stroke-width="5" stroke-linecap="round"/></svg>
+   <h1 tabindex="-1">Welcome to CrypPDF</h1>
+   <p class="muted" style="margin:0 0 28px;font-size:15px;line-height:1.5">Sign up or log in to protect your PDFs in seconds.</p>
+   <button class="btn lg" id="gbtn" type="button"><svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="24" fill="#fff"/><path fill="#EA4335" d="M24 13c3 0 5.6 1 7.7 3l5.7-5.7C34 7 29.4 5 24 5 16 5 9.200 9.600 5.900 16.300l6.700 5.200C14.200 16.600 18.700 13 24 13z"/><path fill="#4285F4" d="M42.500 24.500c0-1.400-.1-2.600-.4-3.800H24v7.200h10.400c-.5 2.500-1.900 4.600-4 6l6.400 5c3.700-3.500 5.700-8.600 5.700-14.400z"/><path fill="#FBBC05" d="M12.600 28.500a11.500 11.500 0 0 1 0-7l-6.700-5.200a19 19 0 0 0 0 17.400l6.700-5.200z"/><path fill="#34A853" d="M24 43c5.400 0 9.900-1.800 13.200-4.800l-6.400-5c-1.800 1.200-4.100 1.900-6.800 1.900-5.300 0-9.800-3.600-11.400-8.400l-6.700 5.200C9.200 38.400 16 43 24 43z"/></svg><span>Continue with Google</span></button>
+   <div role="status" aria-live="polite" id="gmsg"></div>
+   
+   <p class="muted" style="margin:20px 0 0;font-size:12px;line-height:1.5">Sign-in is handled by Google. Your PDFs are encrypted in your browser and never written to disk.</p>
+  </div>
+ </div>
+</section>
+
+<!-- 3 TOUR -->
+<section data-view="tour" class="page" hidden aria-label="Product tour" style="gap:14px">
+ <div class="sky tour-hero"><div class="horizon" style="height:280px;bottom:-200px"></div><div style="position:relative"><a class="btn sm ghost" href="#/app" style="margin-bottom:18px">Back to dashboard</a><div class="eyebrow">Inside CrypPDF</div><h1 tabindex="-1">Everything you need to protect a PDF</h1></div></div>
+ <div class="tour-grid">
+  <a class="tcard" href="#/app"><div class="ico" style="background:linear-gradient(135deg,#C9D8FF,#F3B7DA)"><svg aria-hidden="true"><use href="#i-dash"/></svg></div><h2>Core dashboard</h2><p>Your home base. Lock a new PDF and see who opened what.</p><span class="go">See the page</span></a>
+  <a class="tcard" href="#/files"><div class="ico" style="background:linear-gradient(135deg,#BFE0F5,#C9D8FF)"><svg aria-hidden="true"><use href="#i-files"/></svg></div><h2>File management</h2><p>Search, organise and change protection on every file.</p><span class="go">See the page</span></a>
+  <a class="tcard" href="#/receiver"><div class="ico" style="background:linear-gradient(135deg,#F3B7DA,#FBE0EE)"><svg aria-hidden="true"><use href="#i-recv"/></svg></div><h2>Receiver side</h2><p>What the person you share with sees: a clean unlock page.</p><span class="go">See the page</span></a>
+  <a class="tcard" href="#/account"><div class="ico" style="background:linear-gradient(135deg,#5FA6E3,#BFE0F5)"><svg aria-hidden="true"><use href="#i-acct"/></svg></div><h2>Account essentials</h2><p>Profile, plan and security defaults in one calm place.</p><span class="go">See the page</span></a>
+ </div>
+</section>
+
+<div class="shell" id="shell" hidden>
+ <aside class="side"><a class="brand" href="#/"><svg width="22" height="26" style="color:var(--blue)" aria-hidden="true"><use href="#logo"/></svg>CrypPDF</a>
+  <nav aria-label="App"><a href="#/app"><i></i>Dashboard</a><a href="#/files"><i></i>My files</a><a href="#/tour"><i></i>Product tour</a><a href="#/account"><i></i>Account</a></nav>
+  <div class="trial"><b>Memory-only relay</b><br>Files are encrypted in your browser and never written to disk.</div></aside>
+ <div class="area">
+  <section data-view="dash" hidden aria-label="Dashboard">
+   <div class="head"><div><h1 tabindex="-1" id="hello">Welcome</h1><p class="muted">Here is what is happening with your protected files.</p></div><label class="btn" for="pick" style="cursor:pointer">Protect a PDF</label></div>
+   <div class="drop" id="drop"><div><h2>Drop a PDF here to lock it</h2><p>Encrypted in your browser, then held in memory only.</p>
+    <input id="pick" type="file" accept="application/pdf,.pdf" hidden><label class="btn" for="pick" tabindex="0" id="browse" style="cursor:pointer">Browse files</label>
+    <div class="prog" id="prog" hidden role="status"><span id="pname"></span><div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div></div></div></div>
+   <div class="stats"><div class="card"><div class="muted" style="font-weight:600;font-size:14px">Protected files</div><div class="num" id="s1">0</div></div><div class="card"><div class="muted" style="font-weight:600;font-size:14px">Pending requests</div><div class="num" id="s2">0</div></div><div class="card"><div class="muted" style="font-weight:600;font-size:14px">Downloads</div><div class="num" id="s3">0</div></div></div>
+   <div class="card pending"><div style="display:flex;align-items:center;gap:12px"><h2 style="margin:0;font-size:22px;font-weight:800">Pending Access Requests</h2><span class="badge" id="pcount">0</span></div><div id="plist" aria-live="polite"></div></div>
+   <div class="card"><h2 style="margin:0 0 6px;font-size:20px;font-weight:800">Recent activity</h2><div id="alist"></div></div>
+  </section>
+  <section data-view="files" hidden aria-label="File management">
+   <div class="head"><h1 tabindex="-1" style="flex:1">My files</h1><input class="input search" id="q" type="search" aria-label="Search files" placeholder="Search files" autocomplete="off"><label class="btn sm" for="pick" style="cursor:pointer;min-height:44px;padding:0 24px">Upload PDF</label></div>
+   <div class="filters" role="group" aria-label="Filter files"><button class="pillbtn" data-f="all" aria-pressed="true">All</button><button class="pillbtn" data-f="wait" aria-pressed="false">Awaiting approval</button><button class="pillbtn" data-f="down" aria-pressed="false">Downloaded</button></div>
+   <div class="files-grid"><div class="card fl"><div class="fhead" aria-hidden="true"><span>Name</span><span>Protection</span><span>Added</span></div><div id="flist"></div><div id="fcount" aria-live="polite" style="position:absolute;left:-9999px"></div></div>
+   <aside class="card detail" id="detail" aria-label="File details"></aside></div>
+  </section>
+  <section data-view="account" hidden aria-label="Account essentials">
+   <div class="head"><div><h1 tabindex="-1">Account</h1><p class="muted">Your profile, gateway status and security defaults.</p></div></div>
+   <div style="display:flex;flex-wrap:wrap;gap:14px">
+    <div class="card" style="flex:1 1 320px;display:flex;gap:18px;align-items:center"><div class="avatar" id="av" aria-hidden="true"></div><div><div style="font:800 20px var(--hd)" id="un"></div><div class="muted" style="font-size:14px;margin:2px 0 8px" id="ue"></div><span class="chip" id="up"></span></div></div>
+    <div class="card" style="flex:1 1 320px"><h2 style="margin:0 0 4px;font-size:20px;font-weight:800">Gateway status</h2><div id="stat"></div></div></div>
+   <div class="card"><h2 style="margin:0 0 12px;font-size:20px;font-weight:800" id="sech">Sharing defaults</h2>
+    <div role="group" aria-labelledby="sech">
+     <label class="sw">Remove the file from memory after its first download<input type="checkbox" role="switch" id="burn"></label>
+     <label class="sw" for="ttl">Keep files in memory for<select class="input sel" id="ttl"><option value="15">15 minutes</option><option value="30">30 minutes</option><option value="60">60 minutes</option></select></label></div></div>
+   <div class="card" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px"><button class="btn ghost" id="out" type="button">Sign out</button><button class="btn danger" id="del" type="button">Delete my data</button></div>
+  </section>
+ </div>
+</div>
+
+<!-- 6 RECEIVER -->
+<section data-view="receiver" class="page" hidden aria-label="Receiver side">
+ <div class="sky center">
+  <div class="cloud-layer c1"></div><div class="cloud-layer c2"></div><div class="horizon"></div>
+  <a class="brand top-brand" href="#/">CrypPDF</a>
+  <div class="rcards" id="rcards" aria-live="polite"></div>
+ </div>
+</section>
+</main>
+<div id="toast" role="status" aria-live="polite"></div>
+<dialog id="dlg"><form method="dialog"><h2 id="dt"></h2><p id="dp"></p><div class="act"><button class="btn ghost sm" value="cancel">Cancel</button><button class="btn sm" id="dok" value="ok">Confirm</button></div></form></dialog>
+
+<script>
+(()=>{
+'use strict';
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let tt;const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),3600)};
+function confirmBox(title,body,ok,cb){$('#dt').textContent=title;$('#dp').textContent=body;$('#dok').textContent=ok;const d=$('#dlg');d.returnValue='';d.showModal();d.addEventListener('close',()=>{if(d.returnValue==='ok')cb()},{once:true})}
+let user=null,cfg={},tr=[],sel=null,filt='all',rc={},rp,rarg='',first=true;
+const prefs=()=>({burn:localStorage.getItem('burn')==='1',ttl:+localStorage.getItem('ttl')||30});
+async function api(p,o={}){const r=await fetch('/api'+p,{credentials:'same-origin',...o});let d=null;try{d=await r.json()}catch{}
+ if(r.status===401&&user){user=null;tr=[];route()}
+ if(!r.ok)throw Object.assign(new Error((d&&d.error)||'Request failed'),{status:r.status});return d}
+const ago=t=>{const s=Math.max(0,(Date.now()-t)/1000|0);return s<60?'just now':s<3600?(s/60|0)+' min ago':s<86400?(s/3600|0)+' h ago':(s/86400|0)+' d ago'};
+const left=t=>Math.max(0,Math.ceil((t-Date.now())/60000))+' min left';
+const b64=a=>btoa(String.fromCharCode(...new Uint8Array(a))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+const unb64=s=>Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0));
+const noCrypto=()=>!(window.crypto&&crypto.subtle)&&(toast('Encryption needs a secure address. Open http://127.0.0.1:3000 or use https.'),true);
+async function encrypt(buf){const k=await crypto.subtle.generateKey({name:'AES-GCM',length:256},true,['encrypt','decrypt']),iv=crypto.getRandomValues(new Uint8Array(12)),ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},k,buf),out=new Uint8Array(12+ct.byteLength);out.set(iv);out.set(new Uint8Array(ct),12);return{blob:out,key:b64(await crypto.subtle.exportKey('raw',k))}}
+
+/* ---- router: tour, dashboard, files, account require login ---- */
+const R={'':'landing',auth:'auth',tour:'tour',app:'dash',files:'files',receiver:'receiver',account:'account'},APP=['dash','files','account'],PROT=['tour','dash','files','account'];
+const TITLES={landing:'CrypPDF',auth:'Log in',tour:'Product tour',dash:'Dashboard',files:'My files',receiver:'Receiver',account:'Account'};
+function route(){
+ const h=location.hash.replace(/^#\/?/,'').split('/'),id=R[h[0]]??'landing';rarg=h[1]||'';
+ if(PROT.includes(id)&&!user){location.hash='#/auth';return}
+ if(id==='auth'&&user){location.hash='#/app';return}
+ $('#shell').hidden=!APP.includes(id);
+ $$('[data-view]').forEach(s=>s.hidden=s.dataset.view!==id);
+ $$('.side nav a').forEach(a=>a.getAttribute('href')==='#/'+h[0]?a.setAttribute('aria-current','page'):a.removeAttribute('aria-current'));
+ document.title=TITLES[id]+' · CrypPDF';
+ if(user&&APP.includes(id))refresh();
+ if(id==='account')renderAccount();
+ if(id==='receiver'){recv('request');if(rarg)$('#tk').value=rarg}
+ window.scrollTo(0,0);
+ if(!first){const e=$('[data-view="'+id+'"] h1');e&&e.focus({preventScroll:true})}
+ first=false}
+addEventListener('hashchange',route);
+setTimeout(()=>$('[data-view=landing]').classList.add('intro-done'),3400);
+const enter=()=>location.hash==='#/app'?route():(location.hash='#/app');
+
+/* ---- auth ---- */
+function authUI(){const g=$('#gmsg');let h='';
+ if(cfg.devLogin===undefined)h='<div class="note">Cannot reach the CrypPDF gateway. Start it with <b>node server.js</b>, then open http://127.0.0.1:3000.</div>';
+ else if(cfg.devLogin)h='<form id="devf" class="note"><label for="dn" style="font-weight:600">Local test session: your name</label><input class="input" id="dn" maxlength="60" required style="margin:8px 0"><button class="btn sm" type="submit">Start local session</button></form>';
+ else if(!cfg.googleClientId)h='<div class="note">Sign-in is not configured yet. Start the server with GOOGLE_CLIENT_ID set, or with DEV_LOGIN=1 for local testing.</div>';
+ g.innerHTML=h}
+document.addEventListener('submit',async e=>{if(e.target.id!=='devf')return;e.preventDefault();
+ try{user=(await api('/auth/dev',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:$('#dn').value})})).user;enter()}catch(x){toast(x.message)}});
+$('#gbtn').addEventListener('click',()=>{if(!cfg.googleClientId)return toast('Google sign-in is not configured on this server yet.');window.google&&google.accounts.id.prompt()});
+function loadGoogle(){if(!cfg.googleClientId)return;const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.async=true;
+ s.onload=()=>google.accounts.id.initialize({client_id:cfg.googleClientId,callback:async r=>{try{user=(await api('/auth/google',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({credential:r.credential})})).user;enter()}catch(x){toast(x.message)}}});
+ document.head.appendChild(s)}
+
+/* ---- data + rendering (only real data; otherwise empty states) ---- */
+async function refresh(){try{tr=await api('/transfers')}catch{return}renderPending();renderFiles()}
+const pend=()=>tr.flatMap(t=>t.reqs.filter(r=>r.state==='pending').map(r=>({t,r})));
+function renderPending(){
+ const p=pend();$('#pcount').textContent=p.length;$('#s1').textContent=tr.length;$('#s2').textContent=p.length;$('#s3').textContent=tr.reduce((n,t)=>n+t.downloads,0);
+ $('#hello').textContent='Hello, '+esc(user?user.name.split(' ')[0]:'');
+ $('#plist').innerHTML=p.length?p.map(({t,r})=>`<div class="row"><div class="grow"><b>${esc(t.name)}</b><div class="muted" style="font-size:14px;margin-top:2px">${esc(r.who)}</div></div><span class="muted" style="font-size:13px;flex:0 0 90px">${ago(r.at)}</span><div class="act"><button class="btn sm" data-a="approve" data-t="${t.id}" data-r="${r.id}">Approve</button><button class="btn sm ghost" data-a="deny" data-t="${t.id}" data-r="${r.id}">Deny</button></div></div>`).join(''):'<div class="empty">No pending requests. When someone uses your share link, they appear here.</div>';
+ const ev=[];tr.forEach(t=>{ev.push([t.createdAt,t.name,'Encrypted and added','Protected']);t.reqs.forEach(r=>{ev.push([r.at,`${r.who} requested access to ${t.name}`,'','Requested']);
+  if(r.decidedAt)ev.push([r.decidedAt,`${r.who}: ${t.name}`,{approved:'Approved',denied:'Denied',revoked:'Revoked',used:'Approved'}[r.state]||'Approved',{approved:'Approved',denied:'Denied',revoked:'Revoked',used:'Approved'}[r.state]||'Approved']);
+  if(r.usedAt)ev.push([r.usedAt,`${r.who} downloaded ${t.name}`,'','Downloaded'])})});
+ ev.sort((a,b)=>b[0]-a[0]);
+ $('#alist').innerHTML=ev.length?ev.slice(0,8).map(e=>`<div class="row"><span class="grow" style="font-weight:600">${esc(e[1])}${e[2]?' · '+e[2]:''}</span><span class="muted">${ago(e[0])}</span><span class="chip ${e[3]==='Denied'||e[3]==='Revoked'?'bad':''}">${e[3]}</span></div>`).join(''):'<div class="empty">No activity yet. Protect a PDF to get started.</div>'}
+function visible(){const q=$('#q').value.trim().toLowerCase();return tr.filter(t=>(!q||t.name.toLowerCase().includes(q))&&(filt==='all'||(filt==='wait'&&t.reqs.some(r=>r.state==='pending'))||(filt==='down'&&t.downloads>0)))}
+function renderFiles(){
+ const v=visible();if(v.length&&!v.some(t=>t.id===sel))sel=v[0].id;
+ $('#flist').innerHTML=v.length?v.map(t=>`<button class="frow" data-sel="${t.id}" aria-pressed="${t.id===sel}"><span class="n">${esc(t.name)}</span><span class="tags"><span class="chip">Encrypted</span>${t.burn?'<span class="chip">One download</span>':''}</span><span class="m muted">${ago(t.createdAt)}</span></button>`).join(''):`<div class="empty">${tr.length?'No files match. Clear the search or pick another filter.':'No files yet. Use Upload PDF to protect your first one.'}</div>`;
+ $('#fcount').textContent=v.length+' files shown';
+ const t=tr.find(x=>x.id===sel),key=t&&sessionStorage.getItem('k:'+t.id);
+ $('#detail').innerHTML=v.length&&t?`<div class="thumb" aria-hidden="true">PDF</div><div style="font:800 18px var(--hd);overflow-wrap:anywhere">${esc(t.name)}</div><div class="muted" style="font-size:13px">${(t.size/1024).toFixed(0)} KB encrypted · ${left(t.expiresAt)}</div>
+ <div style="font-size:14px;font-weight:600">Share link</div>${key?`<div class="copy"><input class="input" id="lnk" readonly aria-label="Share link" value="${esc(location.origin+'/#/receiver/'+t.id+'.'+key)}"><button class="btn sm" id="cp" type="button">Copy</button></div>`:'<div class="muted" style="font-size:13px">The decryption key lives only in the browser tab that uploaded this file, so the link cannot be shown again.</div>'}
+ <div class="muted" style="font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-top:6px">Access requests</div><div style="margin-top:-8px">${t.reqs.length?t.reqs.map(r=>`<div class="req"><div><div style="font-size:14px;font-weight:600">${esc(r.who)}</div><div class="muted" style="font-size:12px">${ago(r.at)} · ${r.state}</div></div><div class="act">${r.state==='pending'?`<button class="btn sm" data-a="approve" data-t="${t.id}" data-r="${r.id}">Approve</button><button class="btn sm ghost" data-a="deny" data-t="${t.id}" data-r="${r.id}">Deny</button>`:r.state==='approved'?`<button class="btn sm danger" data-a="revoke" data-t="${t.id}" data-r="${r.id}">Revoke</button>`:`<span class="chip ${r.state==='used'?'':'bad'}">${r.state==='used'?'Downloaded':r.state==='denied'?'Denied':'Revoked'}</span>`}</div></div>`).join(''):'<div class="empty" style="padding:16px 0">No requests yet.</div>'}</div>
+ <button class="btn sm danger" data-rm="${t.id}" type="button">Remove from memory now</button>`:'<div class="empty">Select a file to see its details.</div>'}
+document.addEventListener('click',async e=>{
+ const b=e.target.closest('[data-a]');
+ if(b){try{await api(`/transfers/${b.dataset.t}/requests/${b.dataset.r}/${b.dataset.a}`,{method:'POST'});toast({approve:'Request approved',deny:'Request denied',revoke:'Access revoked'}[b.dataset.a]);refresh()}catch(x){toast(x.message);refresh()}return}
+ const rm=e.target.closest('[data-rm]');if(rm)return confirmBox('Remove this file?','The encrypted copy is erased from memory and its link stops working.','Remove',async()=>{try{await api('/transfers/'+rm.dataset.rm,{method:'DELETE'});toast('Removed from memory');refresh()}catch(x){toast(x.message)}});
+ if(e.target.id==='cp'){const i=$('#lnk');i.select();try{await navigator.clipboard.writeText(i.value);toast('Share link copied')}catch{document.execCommand('copy');toast('Share link copied')}}
+ const s=e.target.closest('[data-sel]');if(s){sel=s.dataset.sel;renderFiles();$(`[data-sel="${sel}"]`)?.focus()}
+ const k=e.target.closest('[data-r2]');if(k)recvAction(k.dataset.r2)});
+$('#q').addEventListener('input',renderFiles);
+$$('.pillbtn').forEach(b=>b.addEventListener('click',()=>{filt=b.dataset.f;$$('.pillbtn').forEach(x=>x.setAttribute('aria-pressed',x===b));renderFiles()}));
+
+/* ---- upload: encrypt in browser, send ciphertext to local gateway ---- */
+const drop=$('#drop'),pick=$('#pick');
+async function handle(f){
+ if(!f||!user)return;
+ if(!(f.type==='application/pdf'||/\.pdf$/i.test(f.name)))return toast('Only PDF files can be added.');
+ if(f.size>25*1048576)return toast('That file is over 25 MB. Choose a smaller PDF.');
+ if(noCrypto())return;
+ const pr=$('#prog'),bar=$('.bar i'),pb=$('.bar'),set=v=>{bar.style.width=v+'%';pb.setAttribute('aria-valuenow',v)};
+ if(location.hash!=='#/app')location.hash='#/app';
+ pr.hidden=false;$('#pname').textContent='Encrypting '+f.name+' in your browser…';set(20);
+ try{const{blob,key}=await encrypt(await f.arrayBuffer());set(55);$('#pname').textContent='Sending the encrypted file to your local gateway…';
+  const p=prefs(),t=await api('/transfers',{method:'POST',headers:{'X-File-Name':encodeURIComponent(f.name),'X-TTL-Min':p.ttl,'X-Burn':p.burn?'1':'0','Content-Type':'application/octet-stream'},body:blob});
+  sessionStorage.setItem('k:'+t.id,key);set(100);sel=t.id;await refresh();toast('Encrypted. Open My files to copy the share link.')}
+ catch(x){toast(x.message||'Upload failed.')}
+ finally{setTimeout(()=>{pr.hidden=true;set(0)},900)}}
+pick.addEventListener('change',()=>{handle(pick.files[0]);pick.value=''});
+$('#browse').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pick.click()}});
+['dragenter','dragover'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.add('over')}));
+['dragleave','drop'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.remove('over')}));
+drop.addEventListener('drop',e=>handle(e.dataTransfer.files[0]));
+
+/* ---- receiver: real requests to the gateway, polling for the owner's decision ---- */
+function recv(state,msg){
+ clearTimeout(rp);const box=$('#rcards'),H=`<h1 tabindex="-1">${esc(rc.name||'Open a shared file')}</h1>`;
+ if(state==='request')box.innerHTML=`<form class="rcard" id="rf" novalidate><div class="step">Step 1 · Request access</div>${H}<label for="rw" style="font-size:14px;font-weight:600">Your name</label><input class="input" id="rw" autocomplete="name" maxlength="80"><label for="tk" style="font-size:14px;font-weight:600">Share ticket or link</label><input class="input" id="tk" placeholder="Paste your share ticket or link" autocomplete="off" aria-describedby="terr"><div class="err" id="terr" role="alert">${esc(msg||'')}</div><button class="btn lg" type="submit">Request Access</button></form>`;
+ if(state==='wait')box.innerHTML=`<div class="rcard"><div class="step">Step 2 · Waiting</div>${H}<div class="dots" aria-hidden="true"><span></span><span></span><span></span></div><p style="margin:0;font-size:18px;font-weight:600;line-height:1.4">Waiting for the owner to approve your request</p><p class="muted" style="margin:0;font-size:13px">Keep this page open. It checks for the owner's answer every 2 seconds.</p></div>`;
+ if(state==='ok')box.innerHTML=`<div class="rcard"><div class="step">Step 3 · Approved</div>${H}<p class="muted" style="margin:0;font-size:15px">Your request was approved. The file is decrypted in your browser.</p><button class="btn lg" data-r2="dl" type="button">Download</button></div>`;
+ const E={no:['Request declined','The owner declined or revoked this request.','Request again'],used:['Already downloaded','This approval was used for one download. Ask the owner to approve again.','Request again'],gone:['Ticket expired','This ticket expired or the owner removed the file.','Start over']}[state];
+ if(E)box.innerHTML=`<div class="rcard"><div class="step" style="color:var(--danger)">${E[0]}</div>${H}<p class="muted" style="margin:0;font-size:15px">${E[1]}</p><button class="btn lg" data-r2="again" type="button">${E[2]}</button></div>`;
+ const h=$('#rcards h1');state!=='request'&&h&&h.focus({preventScroll:true})}
+function poll(){rp=setTimeout(async()=>{if(!/receiver/.test(location.hash))return;try{const s=await api(`/t/${rc.id}/request/${rc.token}`);s.state==='pending'?poll():recv(s.state==='approved'?'ok':s.state==='used'?'used':'no')}catch{recv('gone')}},2000)}
+document.addEventListener('submit',async e=>{if(e.target.id!=='rf')return;e.preventDefault();
+ const who=$('#rw').value.trim(),m=/([\w-]{22})\.([\w-]{43})/.exec($('#tk').value),bad=(t,i)=>{recv('request',t);$('#rw').value=who;i&&$(i).focus()};
+ if(!who)return($('#terr').textContent='Enter your name.',$('#rw').setAttribute('aria-invalid','true'),$('#rw').focus());
+ if(!m){$('#tk').setAttribute('aria-invalid','true');$('#terr').textContent='That does not look like a share ticket. Paste the full link you were sent.';return $('#tk').focus()}
+ try{const meta=await api('/t/'+m[1]);const r=await api(`/t/${m[1]}/request`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({who})});rc={id:m[1],key:m[2],token:r.token,name:meta.name};recv('wait');poll()}
+ catch(x){$('#terr').textContent=x.message;$('#tk').setAttribute('aria-invalid','true')}});
+async function recvAction(k){
+ if(k==='again'){rc={};history.replaceState(null,'','#/receiver');return recv('request')}
+ if(k!=='dl'||noCrypto())return;
+ try{const r=await fetch(`/api/t/${rc.id}/file/${rc.token}`);if(!r.ok)throw new Error((await r.json()).error);
+  const enc=new Uint8Array(await r.arrayBuffer()),key=await crypto.subtle.importKey('raw',unb64(rc.key),'AES-GCM',false,['decrypt']),
+  pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:enc.slice(0,12)},key,enc.slice(12)),a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([pt],{type:'application/pdf'}));a.download=rc.name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000);toast('Downloaded '+rc.name);recv('used')}
+ catch(x){toast(x.name==='OperationError'?'Could not decrypt: the ticket key does not match this file.':x.message)}}
+
+/* ---- account ---- */
+async function renderAccount(){
+ $('#av').textContent=(user.name[0]||'?').toUpperCase();$('#un').textContent=user.name;$('#ue').textContent=user.email||'No email on this local session';
+ $('#up').textContent=user.provider==='google'?'Signed in with Google':'Local test session';
+ $('#burn').checked=prefs().burn;$('#ttl').value=String(prefs().ttl);
+ try{const s=await api('/status');$('#stat').innerHTML=[['Storage',s.storage],['Max file size',s.maxMB+' MB'],['Files held for you',s.held],['Listening on',s.host]].map(r=>`<div class="kv"><span class="muted">${r[0]}</span><b>${esc(r[1])}</b></div>`).join('')}catch{}}
+$('#burn').addEventListener('change',e=>{localStorage.setItem('burn',e.target.checked?'1':'0');toast('Saved. Applies to files you upload next.')});
+$('#ttl').addEventListener('change',e=>{localStorage.setItem('ttl',e.target.value);toast('Saved. Applies to files you upload next.')});
+$('#out').addEventListener('click',()=>confirmBox('Sign out?','Files you shared stay available until they expire.','Sign out',async()=>{try{await api('/auth/logout',{method:'POST'})}catch{}user=null;tr=[];location.hash='#/auth';route()}));
+$('#del').addEventListener('click',()=>confirmBox('Delete my data?','This erases every file you shared from memory and ends all access requests. It cannot be undone.','Delete my data',async()=>{try{await api('/me/data',{method:'DELETE'});sel=null;await refresh();toast('All your files were erased from memory.')}catch(x){toast(x.message)}}));
+
+(async()=>{try{cfg=await api('/config')}catch{}try{user=(await api('/me')).user}catch{}authUI();loadGoogle();route();setInterval(()=>{if(user&&!$('#shell').hidden)refresh()},4000)})();
+})();
+</script>
+</body></html>
